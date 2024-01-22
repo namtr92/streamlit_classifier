@@ -73,7 +73,7 @@ def main():
         with col2:
             prediction = predict(cropped_img)
             st.write("Prediction:", classes[prediction])
-            st.image(cropped_img, caption="Uploaded Image.", use_column_width=True)
+            st.image(cropped_img, caption="Uploaded Image.", use_column_width='auto')
             # Make predictions
             
         
