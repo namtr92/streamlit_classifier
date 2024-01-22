@@ -11,26 +11,33 @@ st.set_page_config(layout="wide")
 classes = ['black',
  'brown',
  'conveyor-hole',
+ 'embose-tape',
  'glue',
  'ink-blue',
  'ink-green',
  'ink-red',
  'ink-yellow',
  'metal-tape',
+ 'others',
+ 'tear',
  'texture',
  'white-clump',
  'white-tape',
  'yellow']
 
 # Load the pre-trained DenseNet121 model
-model = models.resnet18(pretrained=False)
-model.fc = nn.Linear(512, len(classes)) 
-model.load_state_dict(torch.load('deploy/resnet18_pad.pth',map_location=torch.device('cpu')))
+# model = models.resnet18(pretrained=False)
+# model.fc = nn.Linear(512, len(classes)) 
+# model.load_state_dict(torch.load('deploy/resnet18_pad.pth',map_location=torch.device('cpu')))
+
+import timm
+model = timm.create_model('deit_tiny_patch16_224',pretrained=False,num_classes=len(classes))
+model.load_state_dict(torch.load('deploy/deit_tiny_pad.pth',map_location=torch.device('cpu')))
 model.eval()
 
 # Define the image transformation
 transform = transforms.Compose([
-    transforms.Resize((128)),
+    transforms.Resize((224)),
     transforms.ToTensor(),
     #transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 ])
