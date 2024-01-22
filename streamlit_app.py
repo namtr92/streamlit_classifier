@@ -25,7 +25,7 @@ classes = ['black',
 # Load the pre-trained DenseNet121 model
 model = models.resnet18(pretrained=False)
 model.fc = nn.Linear(512, len(classes)) 
-model.load_state_dict(torch.load('models/resnet18_pad.pth'))
+model.load_state_dict(torch.load('deploy/resnet18_pad.pth'))
 model.eval()
 
 # Define the image transformation
