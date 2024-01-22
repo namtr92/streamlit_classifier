@@ -14,7 +14,7 @@ quant_nn.TensorQuantizer.use_fb_fake_quant = True
 from tqdm import tqdm
 quant_modules.initialize()
 
-model_name = 'resnet18'
+model_name = 'deit_tiny'
 
 def compute_amax(model, **kwargs):
      # Load calib result
@@ -55,7 +55,7 @@ def collect_stats(model, data_loader, num_batches):
 
 # Define transforms
 transform = transforms.Compose([
-    transforms.RandomResizedCrop(128,scale=(0.8,1.0)),
+    transforms.RandomResizedCrop((224,224),scale=(0.8,1.0)),
     transforms.RandomHorizontalFlip(),
     transforms.RandomVerticalFlip(),
     transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.1, hue=0.05),
@@ -64,7 +64,7 @@ transform = transforms.Compose([
 ])
 
 # Modify the root directory based on your dataset structure
-dataset_path = r'D:\images\kcc\dataset\classifier'
+dataset_path = r'E:\dataset\pad'
 custom_dataset = datasets.ImageFolder(root=dataset_path, transform=transform)
 duplicated_dataset = ConcatDataset([custom_dataset] * 2)
 # Define DataLoader
@@ -75,10 +75,15 @@ num_classes = len(custom_dataset.classes)
 quant_desc_input = QuantDescriptor(calib_method='histogram')
 quant_nn.QuantConv2d.set_default_quant_desc_input(quant_desc_input)
 quant_nn.QuantLinear.set_default_quant_desc_input(quant_desc_input)
-model = models.resnet18(pretrained=False)
-model.fc = nn.Linear(512, num_classes)  # Modify num_classes based on your dataset
+
+import timm
+model = timm.create_model('deit_tiny_patch16_224',pretrained=False,num_classes=num_classes)
+model.load_state_dict(torch.load('deploy/deit_tiny_pad.pth'))
+
+#model = models.resnet18(pretrained=False)
+#model.fc = nn.Linear(512, num_classes)  # Modify num_classes based on your dataset
 #model = mobileone(variant='s0',num_classes=num_classes)
-model.load_state_dict(torch.load(f'models/{model_name}_pad.pth'))
+#model.load_state_dict(torch.load(f'models/{model_name}_pad.pth'))
 #torch.save(model,f'models/{model_name}_pad_full.pth')
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model.to(device)
@@ -91,7 +96,7 @@ with torch.no_grad():
 
 from tqdm import tqdm
 save_dir = f'models/{model_name}_pad_int8.pth'
-model.load_state_dict(torch.load(save_dir)) 
+#model.load_state_dict(torch.load(save_dir)) 
 num_epochs = 2
 correct_predictions = 0
 total_samples = 0
@@ -115,4 +120,4 @@ for epoch in range(num_epochs):
         max_accuracy = accuracy
         torch.save(model.state_dict(),save_dir)
     print(f'Epoch {epoch+1}/{num_epochs}, Loss: {loss.item()}, Acc: {accuracy}')
-torch.onnx.export(model,torch.randn(4,3,128,128).to(device),save_dir.replace('.pth','.onnx'),opset_version=13)
+torch.onnx.export(model,torch.randn(4,3,224,224).to(device),save_dir.replace('.pth','.onnx'),opset_version=15)
