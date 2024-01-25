@@ -55,7 +55,7 @@ def predict(image):
 def main():
     st.title("Image Classifier with ResNet18")
 
-    uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+    uploaded_file = st.file_uploader("Choose an image...",accept_multiple_files=True, type=["jpg", "jpeg", "png"])
     realtime_update = st.sidebar.checkbox(label="Update in Real Time", value=True)
     box_color = st.sidebar.color_picker(label="Box Color", value='#0000FF')
     aspect_choice = st.sidebar.radio(label="Aspect Ratio", options=["1:1", "16:9", "4:3", "2:3", "Free"])
